@@ -22,10 +22,10 @@
 
 #define PWM_MAX        700
 
-#define M1_ENCODER_SIGN   1
-#define M2_ENCODER_SIGN  -1
-#define M3_ENCODER_SIGN   1
-#define M4_ENCODER_SIGN  -1
+#define M1_ENCODER_SIGN   -1
+#define M2_ENCODER_SIGN    1
+#define M3_ENCODER_SIGN   -1
+#define M4_ENCODER_SIGN    1
 /*
  * 这里填写你现在已经调通的目标值
  *
@@ -146,12 +146,12 @@ static void Motor_Forward(uint8_t motor)
             HAL_GPIO_WritePin(
                 M2_IN1_GPIO_Port,
                 M2_IN1_Pin,
-                GPIO_PIN_SET);
+                GPIO_PIN_RESET);
 
             HAL_GPIO_WritePin(
                 M2_IN2_GPIO_Port,
                 M2_IN2_Pin,
-                GPIO_PIN_RESET);
+                GPIO_PIN_SET);
 
             break;
 
@@ -161,12 +161,12 @@ static void Motor_Forward(uint8_t motor)
             HAL_GPIO_WritePin(
                 M3_IN1_GPIO_Port,
                 M3_IN1_Pin,
-                GPIO_PIN_RESET);
+                GPIO_PIN_SET);
 
             HAL_GPIO_WritePin(
                 M3_IN2_GPIO_Port,
                 M3_IN2_Pin,
-                GPIO_PIN_SET);
+                GPIO_PIN_RESET);
 
             break;
 
