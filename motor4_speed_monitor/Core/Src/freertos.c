@@ -22,7 +22,6 @@
 #include "task.h"
 #include "main.h"
 #include "cmsis_os.h"
-#include "robot.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -31,8 +30,7 @@
 #include "motor.h"
 #include "usart.h"
 #include <stdio.h>
-
-/* USER CODE END Includes */
+#include "robot.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -52,7 +50,11 @@
 
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN Variables */
+static uint8_t uart_rx_byte;
 
+static volatile uint8_t uart_last_cmd = 0;
+
+static volatile uint8_t uart_cmd_ready = 0;
 /* USER CODE END Variables */
 /* Definitions for defaultTask */
 osThreadId_t defaultTaskHandle;
@@ -142,57 +144,68 @@ void MX_FREERTOS_Init(void) {
 /* USER CODE END Header_StartDefaultTask */
 void StartDefaultTask(void *argument)
 {
-    uint8_t cmd;
+    /* 开始等待USART1接收1个字节 */
+    HAL_UART_Receive_IT(
+        &huart1,
+        &uart_rx_byte,
+        1
+    );
 
     for (;;)
     {
-        if (HAL_UART_Receive(
-                &huart1,
-                &cmd,
-                1,
-                20) == HAL_OK)
+        if (uart_cmd_ready)
         {
+            uint8_t cmd = uart_last_cmd;
+
+            uart_cmd_ready = 0;
+
             switch (cmd)
             {
-
-            case 'A':
-            case 'a':
-                Robot_Left(150);
-                break;
-
-            case 'D':
-            case 'd':
-                Robot_Right(150);
-                break;
-
-            case 'Q':
-            case 'q':
-                Robot_TurnLeft(150);
-                break;
-
-            case 'E':
-            case 'e':
-                Robot_TurnRight(150);
-                break;
-
-
+                /* 前进 */
                 case 'W':
                 case 'w':
-
                     Robot_Forward(150);
                     break;
 
 
+                /* 后退 */
                 case 'S':
                 case 's':
-
                     Robot_Backward(150);
                     break;
 
 
+                /* 左移 */
+                case 'A':
+                case 'a':
+                    Robot_Left(150);
+                    break;
+
+
+                /* 右移 */
+                case 'D':
+                case 'd':
+                    Robot_Right(150);
+                    break;
+
+
+                /* 原地左转 */
+                case 'Q':
+                case 'q':
+                    Robot_TurnLeft(150);
+                    break;
+
+
+                /* 原地右转 */
+                case 'E':
+                case 'e':
+                    Robot_TurnRight(150);
+                    break;
+
+
+                /* 停止 */
                 case 'X':
                 case 'x':
-
                     Robot_Stop();
                     break;
 
@@ -202,7 +215,7 @@ void StartDefaultTask(void *argument)
             }
         }
 
-        osDelay(10);
+        osDelay(5);
     }
 }
 
@@ -221,11 +234,13 @@ void StartMotorTask(void *argument)
 
     for (;;)
     {
+        /* 每100ms执行一次完整电机闭环控制 */
         Motor_ControlStep();
 
         vTaskDelayUntil(
             &lastWakeTime,
-            pdMS_TO_TICKS(100));
+            pdMS_TO_TICKS(100)
+        );
     }
 }
 
@@ -238,48 +253,39 @@ void StartMotorTask(void *argument)
 /* USER CODE END Header_StartUartTask */
 void StartUartTask(void *argument)
 {
-    char buf[240];
-
-    for (;;)
-    {
-        int len = snprintf(
-            buf,
-            sizeof(buf),
-
-            "T1:%d M1:%d P1:%u | "
-            "T2:%d M2:%d P2:%u | "
-            "T3:%d M3:%d P3:%u | "
-            "T4:%d M4:%d P4:%u\r\n",
-
-            (int)Motor_GetTarget(1),
-            Motor_GetCount(1),
-            Motor_GetPWM(1),
-
-            (int)Motor_GetTarget(2),
-            Motor_GetCount(2),
-            Motor_GetPWM(2),
-
-            (int)Motor_GetTarget(3),
-            Motor_GetCount(3),
-            Motor_GetPWM(3),
-
-            (int)Motor_GetTarget(4),
-            Motor_GetCount(4),
-            Motor_GetPWM(4)
-        );
-
-        HAL_UART_Transmit(
-            &huart1,
-            (uint8_t *)buf,
-            len,
-            100
-        );
-
-        osDelay(200);
-    }
+  /* USER CODE BEGIN StartUartTask */
+  /* Infinite loop */
+  for(;;)
+  {
+    osDelay(1);
+  }
+  /* USER CODE END StartUartTask */
 }
+
 /* Private application code --------------------------------------------------*/
 /* USER CODE BEGIN Application */
+void HAL_UART_RxCpltCallback(
+    UART_HandleTypeDef *huart)
+{
+    if (huart->Instance == USART1)
+    {
+        /* 保存刚才收到的字符 */
+        uart_last_cmd = uart_rx_byte;
 
+        /* 告诉CommandTask有新命令 */
+        uart_cmd_ready = 1;
+
+
+        /* 非常重要：
+         * 接完一个字节以后，
+         * 马上继续等待下一个字节
+         */
+        HAL_UART_Receive_IT(
+            &huart1,
+            &uart_rx_byte,
+            1
+        );
+    }
+}
 /* USER CODE END Application */
 
