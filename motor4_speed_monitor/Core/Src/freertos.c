@@ -142,14 +142,68 @@ void MX_FREERTOS_Init(void) {
 /* USER CODE END Header_StartDefaultTask */
 void StartDefaultTask(void *argument)
 {
-  /* USER CODE BEGIN StartDefaultTask */
-  /* Infinite loop */
-	Robot_Backward(150);
-  for(;;)
-  {
-    osDelay(1000);
-  }
-  /* USER CODE END StartDefaultTask */
+    uint8_t cmd;
+
+    for (;;)
+    {
+        if (HAL_UART_Receive(
+                &huart1,
+                &cmd,
+                1,
+                20) == HAL_OK)
+        {
+            switch (cmd)
+            {
+
+            case 'A':
+            case 'a':
+                Robot_Left(150);
+                break;
+
+            case 'D':
+            case 'd':
+                Robot_Right(150);
+                break;
+
+            case 'Q':
+            case 'q':
+                Robot_TurnLeft(150);
+                break;
+
+            case 'E':
+            case 'e':
+                Robot_TurnRight(150);
+                break;
+
+
+                case 'W':
+                case 'w':
+
+                    Robot_Forward(150);
+                    break;
+
+
+                case 'S':
+                case 's':
+
+                    Robot_Backward(150);
+                    break;
+
+
+                case 'X':
+                case 'x':
+
+                    Robot_Stop();
+                    break;
+
+
+                default:
+                    break;
+            }
+        }
+
+        osDelay(10);
+    }
 }
 
 /* USER CODE BEGIN Header_StartMotorTask */

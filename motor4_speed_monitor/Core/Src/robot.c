@@ -27,18 +27,18 @@ void Robot_Backward(float speed)
 
 void Robot_Left(float speed)
 {
-    Motor_SetTarget(1, -speed);
-    Motor_SetTarget(2,  speed);
-    Motor_SetTarget(3,  speed);
-    Motor_SetTarget(4, -speed);
+    Motor_SetTarget(1,   speed);
+    Motor_SetTarget(2,  -speed);
+    Motor_SetTarget(3,  -speed);
+    Motor_SetTarget(4,   speed);
 }
 
 void Robot_Right(float speed)
 {
-    Motor_SetTarget(1,  speed);
-    Motor_SetTarget(2, -speed);
-    Motor_SetTarget(3, -speed);
-    Motor_SetTarget(4,  speed);
+    Motor_SetTarget(1,  -speed);
+    Motor_SetTarget(2,   speed);
+    Motor_SetTarget(3,   speed);
+    Motor_SetTarget(4,  -speed);
 }
 
 void Robot_TurnLeft(float speed)

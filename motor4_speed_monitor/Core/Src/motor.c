@@ -23,8 +23,8 @@
 #define PWM_MAX        700
 
 #define M1_ENCODER_SIGN   -1
-#define M2_ENCODER_SIGN    -1
-#define M3_ENCODER_SIGN   1
+#define M2_ENCODER_SIGN    1
+#define M3_ENCODER_SIGN   -1
 #define M4_ENCODER_SIGN    1
 /*
  * 这里填写你现在已经调通的目标值
