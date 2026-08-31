@@ -15,5 +15,8 @@ void Robot_Right(float speed);
 
 void Robot_TurnLeft(float speed);
 void Robot_TurnRight(float speed);
+void Robot_SetVelocity(float vx,
+                       float vy,
+                       float wz);
 
 #endif /* INC_ROBOT_H_ */
