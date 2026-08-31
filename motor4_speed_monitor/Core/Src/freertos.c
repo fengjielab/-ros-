@@ -22,6 +22,7 @@
 #include "task.h"
 #include "main.h"
 #include "cmsis_os.h"
+#include "robot.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -143,9 +144,10 @@ void StartDefaultTask(void *argument)
 {
   /* USER CODE BEGIN StartDefaultTask */
   /* Infinite loop */
+	Robot_Backward(150);
   for(;;)
   {
-    osDelay(1);
+    osDelay(1000);
   }
   /* USER CODE END StartDefaultTask */
 }
@@ -182,7 +184,7 @@ void StartMotorTask(void *argument)
 /* USER CODE END Header_StartUartTask */
 void StartUartTask(void *argument)
 {
-    char buf[200];
+    char buf[240];
 
     for (;;)
     {
@@ -190,23 +192,24 @@ void StartUartTask(void *argument)
             buf,
             sizeof(buf),
 
-            "T:%d | "
-            "M1:%d P1:%u | "
-            "M2:%d P2:%u | "
-            "M3:%d P3:%u | "
-            "M4:%d P4:%u\r\n",
+            "T1:%d M1:%d P1:%u | "
+            "T2:%d M2:%d P2:%u | "
+            "T3:%d M3:%d P3:%u | "
+            "T4:%d M4:%d P4:%u\r\n",
 
-            (int)Motor_GetTargetCount(),
-
+            (int)Motor_GetTarget(1),
             Motor_GetCount(1),
             Motor_GetPWM(1),
 
+            (int)Motor_GetTarget(2),
             Motor_GetCount(2),
             Motor_GetPWM(2),
 
+            (int)Motor_GetTarget(3),
             Motor_GetCount(3),
             Motor_GetPWM(3),
 
+            (int)Motor_GetTarget(4),
             Motor_GetCount(4),
             Motor_GetPWM(4)
         );
@@ -218,13 +221,9 @@ void StartUartTask(void *argument)
             100
         );
 
-        /*
-         * 每200ms输出一次
-         */
         osDelay(200);
     }
 }
-
 /* Private application code --------------------------------------------------*/
 /* USER CODE BEGIN Application */
 

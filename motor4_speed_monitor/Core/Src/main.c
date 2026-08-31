@@ -216,42 +216,6 @@ void SystemClock_Config(void)
 
 /* USER CODE BEGIN 4 */
 /* USER CODE BEGIN 4 */
-void Send_Control_Data(void)
-{
-    char buf[200];
-
-    int len =
-        snprintf(
-            buf,
-            sizeof(buf),
-
-            "T:%d | "
-            "M1:%d P1:%u | "
-            "M2:%d P2:%u | "
-            "M3:%d P3:%u | "
-            "M4:%d P4:%u\r\n",
-
-            (int)Motor_GetTargetCount(),
-
-            Motor_GetCount(1),
-            Motor_GetPWM(1),
-
-            Motor_GetCount(2),
-            Motor_GetPWM(2),
-
-            Motor_GetCount(3),
-            Motor_GetPWM(3),
-
-            Motor_GetCount(4),
-            Motor_GetPWM(4));
-
-    HAL_UART_Transmit(
-        &huart1,
-        (uint8_t *)buf,
-        len,
-        100);
-}
-
 
 /* ============================================================
    电机PWM控制

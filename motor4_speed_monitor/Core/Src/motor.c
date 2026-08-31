@@ -23,15 +23,18 @@
 #define PWM_MAX        700
 
 #define M1_ENCODER_SIGN   -1
-#define M2_ENCODER_SIGN    1
-#define M3_ENCODER_SIGN   -1
+#define M2_ENCODER_SIGN    -1
+#define M3_ENCODER_SIGN   1
 #define M4_ENCODER_SIGN    1
 /*
  * 这里填写你现在已经调通的目标值
  *
  * 我暂时写290作为示例。
  */
-static float target_count = 150.0f;
+static float motor_target[4] =
+{
+    0, 0, 0, 0
+};
 
 typedef struct
 {
@@ -46,10 +49,10 @@ typedef struct
 
 static PID_t motor_pid[4] =
 {
-    {7.0f, 1.0f, 0.0f, 0.0f, 0.0f},
-    {7.0f, 1.0f, 0.0f, 0.0f, 0.0f},
-    {7.0f, 1.0f, 0.0f, 0.0f, 0.0f},
-    {7.0f, 1.0f, 0.0f, 0.0f, 0.0f}
+    {6.0f, 1.0f, 0.01f, 0.0f, 0.0f},
+    {6.0f, 1.0f, 0.01f, 0.0f, 0.0f},
+    {6.0f, 1.0f, 0.01f, 0.0f, 0.0f},
+    {6.0f, 1.0f, 0.01f, 0.0f, 0.0f}
 };
 
 static int16_t motor_count[4] =
@@ -122,66 +125,127 @@ static void Motor_SetPWM(uint8_t motor,
     }
 }
 
-static void Motor_Forward(uint8_t motor)
+static void Motor_SetDirection(uint8_t motor,
+                               int8_t direction)
 {
     switch (motor)
     {
         case 1:
 
-            HAL_GPIO_WritePin(
-                M1_IN1_GPIO_Port,
-                M1_IN1_Pin,
-                GPIO_PIN_SET);
+            if (direction > 0)
+            {
+                HAL_GPIO_WritePin(
+                    M1_IN1_GPIO_Port,
+                    M1_IN1_Pin,
+                    GPIO_PIN_SET);
 
-            HAL_GPIO_WritePin(
-                M1_IN2_GPIO_Port,
-                M1_IN2_Pin,
-                GPIO_PIN_RESET);
+                HAL_GPIO_WritePin(
+                    M1_IN2_GPIO_Port,
+                    M1_IN2_Pin,
+                    GPIO_PIN_RESET);
+            }
+            else
+            {
+                HAL_GPIO_WritePin(
+                    M1_IN1_GPIO_Port,
+                    M1_IN1_Pin,
+                    GPIO_PIN_RESET);
+
+                HAL_GPIO_WritePin(
+                    M1_IN2_GPIO_Port,
+                    M1_IN2_Pin,
+                    GPIO_PIN_SET);
+            }
 
             break;
 
 
         case 2:
 
-            HAL_GPIO_WritePin(
-                M2_IN1_GPIO_Port,
-                M2_IN1_Pin,
-                GPIO_PIN_RESET);
+            if (direction > 0)
+            {
+                HAL_GPIO_WritePin(
+                    M2_IN1_GPIO_Port,
+                    M2_IN1_Pin,
+                    GPIO_PIN_RESET);
 
-            HAL_GPIO_WritePin(
-                M2_IN2_GPIO_Port,
-                M2_IN2_Pin,
-                GPIO_PIN_SET);
+                HAL_GPIO_WritePin(
+                    M2_IN2_GPIO_Port,
+                    M2_IN2_Pin,
+                    GPIO_PIN_SET);
+            }
+            else
+            {
+                HAL_GPIO_WritePin(
+                    M2_IN1_GPIO_Port,
+                    M2_IN1_Pin,
+                    GPIO_PIN_SET);
+
+                HAL_GPIO_WritePin(
+                    M2_IN2_GPIO_Port,
+                    M2_IN2_Pin,
+                    GPIO_PIN_RESET);
+            }
 
             break;
 
 
         case 3:
 
-            HAL_GPIO_WritePin(
-                M3_IN1_GPIO_Port,
-                M3_IN1_Pin,
-                GPIO_PIN_SET);
+            if (direction > 0)
+            {
+                HAL_GPIO_WritePin(
+                    M3_IN1_GPIO_Port,
+                    M3_IN1_Pin,
+                    GPIO_PIN_SET);
 
-            HAL_GPIO_WritePin(
-                M3_IN2_GPIO_Port,
-                M3_IN2_Pin,
-                GPIO_PIN_RESET);
+                HAL_GPIO_WritePin(
+                    M3_IN2_GPIO_Port,
+                    M3_IN2_Pin,
+                    GPIO_PIN_RESET);
+            }
+            else
+            {
+                HAL_GPIO_WritePin(
+                    M3_IN1_GPIO_Port,
+                    M3_IN1_Pin,
+                    GPIO_PIN_RESET);
+
+                HAL_GPIO_WritePin(
+                    M3_IN2_GPIO_Port,
+                    M3_IN2_Pin,
+                    GPIO_PIN_SET);
+            }
 
             break;
 
 
         case 4:
 
-            HAL_GPIO_WritePin(
-                M4_IN1_GPIO_Port,
-                M4_IN1_Pin,
-                GPIO_PIN_RESET);
+            if (direction > 0)
+            {
+                HAL_GPIO_WritePin(
+                    M4_IN1_GPIO_Port,
+                    M4_IN1_Pin,
+                    GPIO_PIN_RESET);
 
-            HAL_GPIO_WritePin(
-                M4_IN2_GPIO_Port,
-                M4_IN2_Pin,
-                GPIO_PIN_SET);
+                HAL_GPIO_WritePin(
+                    M4_IN2_GPIO_Port,
+                    M4_IN2_Pin,
+                    GPIO_PIN_SET);
+            }
+            else
+            {
+                HAL_GPIO_WritePin(
+                    M4_IN1_GPIO_Port,
+                    M4_IN1_Pin,
+                    GPIO_PIN_SET);
+
+                HAL_GPIO_WritePin(
+                    M4_IN2_GPIO_Port,
+                    M4_IN2_Pin,
+                    GPIO_PIN_RESET);
+            }
 
             break;
 
@@ -311,24 +375,23 @@ void Motor_Init(void)
 
     /* 设置方向 */
 
-    Motor_Forward(1);
-    Motor_Forward(2);
-    Motor_Forward(3);
-    Motor_Forward(4);
+    Motor_SetDirection(1, 1);
+    Motor_SetDirection(2, 1);
+    Motor_SetDirection(3, 1);
+    Motor_SetDirection(4, 1);
 
 
     /* 初始PWM */
 
-    motor_pwm[0] = BASE_PWM;
-    motor_pwm[1] = BASE_PWM;
-    motor_pwm[2] = BASE_PWM;
-    motor_pwm[3] = BASE_PWM;
+    motor_pwm[0] = 0;
+    motor_pwm[1] = 0;
+    motor_pwm[2] = 0;
+    motor_pwm[3] = 0;
 
-
-    Motor_SetPWM(1, BASE_PWM);
-    Motor_SetPWM(2, BASE_PWM);
-    Motor_SetPWM(3, BASE_PWM);
-    Motor_SetPWM(4, BASE_PWM);
+    Motor_SetPWM(1, 0);
+    Motor_SetPWM(2, 0);
+    Motor_SetPWM(3, 0);
+    Motor_SetPWM(4, 0);
 }
 
 void Motor_ControlStep(void)
@@ -390,15 +453,70 @@ void Motor_ControlStep(void)
      * 四路PID
      * ========================== */
 
-    for (int i = 0;
-         i < 4;
-         i++)
+    for (int i = 0; i < 4; i++)
     {
+        float target;
+        float target_abs;
+        float actual_abs;
+
+
+        target = motor_target[i];
+
+
+        /* =================================
+         * 情况1：目标为0
+         * → 停止电机
+         * ================================= */
+
+        if (target == 0.0f)
+        {
+            Motor_SetPWM(i + 1, 0);
+
+            motor_pwm[i] = 0;
+
+            /* 停止时清除PID历史 */
+            motor_pid[i].integral = 0.0f;
+            motor_pid[i].last_error = 0.0f;
+
+            continue;
+        }
+
+
+        /* =================================
+         * 情况2：根据目标正负决定方向
+         * ================================= */
+
+        if (target > 0.0f)
+        {
+            Motor_SetDirection(i + 1, 1);
+
+            target_abs = target;
+        }
+        else
+        {
+            Motor_SetDirection(i + 1, -1);
+
+            target_abs = -target;
+        }
+
+
+        /* =================================
+         * PID只比较速度大小
+         * ================================= */
+
+        actual_abs = (float)motor_count[i];
+
+        if (actual_abs < 0.0f)
+        {
+            actual_abs = -actual_abs;
+        }
+
+
         motor_pwm[i] =
             (uint16_t)PID_Update(
                 &motor_pid[i],
-                target_count,
-                motor_count[i]);
+                target_abs,
+                actual_abs);
 
 
         Motor_SetPWM(
@@ -407,14 +525,24 @@ void Motor_ControlStep(void)
     }
 }
 
-void Motor_SetTargetCount(float target)
+void Motor_SetTarget(uint8_t motor, float target)
 {
-    target_count = target;
+    if (motor < 1 || motor > 4)
+    {
+        return;
+    }
+
+    motor_target[motor - 1] = target;
 }
 
-float Motor_GetTargetCount(void)
+float Motor_GetTarget(uint8_t motor)
 {
-    return target_count;
+    if (motor < 1 || motor > 4)
+    {
+        return 0.0f;
+    }
+
+    return motor_target[motor - 1];
 }
 
 int16_t Motor_GetCount(uint8_t motor)
@@ -439,16 +567,17 @@ uint16_t Motor_GetPWM(uint8_t motor)
 
 void Motor_StopAll(void)
 {
-    Motor_SetPWM(1, 0);
-    Motor_SetPWM(2, 0);
-    Motor_SetPWM(3, 0);
-    Motor_SetPWM(4, 0);
+    for (int i = 0; i < 4; i++)
+    {
+        motor_target[i] = 0.0f;
 
-    motor_pwm[0] = 0;
-    motor_pwm[1] = 0;
-    motor_pwm[2] = 0;
-    motor_pwm[3] = 0;
+        motor_pwm[i] = 0;
+
+        motor_pid[i].integral = 0.0f;
+        motor_pid[i].last_error = 0.0f;
+
+        Motor_SetPWM(i + 1, 0);
+    }
 }
-
 
 

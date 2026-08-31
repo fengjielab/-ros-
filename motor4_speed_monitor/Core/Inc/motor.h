@@ -30,12 +30,12 @@ void Motor_ControlStep(void);
 /* ==============================
  * 修改四个电机的目标count
  * ============================== */
-void Motor_SetTargetCount(float target);
+void Motor_SetTarget(uint8_t motor, float target);
 
 
 /* 获取目标count */
-float Motor_GetTargetCount(void);
 
+float Motor_GetTarget(uint8_t motor);
 
 /* 获取某个电机本周期count */
 int16_t Motor_GetCount(uint8_t motor);
