@@ -55,6 +55,24 @@ static uint8_t uart_rx_byte;
 static volatile uint8_t uart_last_cmd = 0;
 
 static volatile uint8_t uart_cmd_ready = 0;
+
+
+/* ==============================
+ * 调试观察变量
+ * ============================== */
+
+/* USART实际收到的最后一个字符 */
+volatile uint8_t debug_last_rx_cmd = 0;
+
+/* USART接收完成次数 */
+volatile uint32_t debug_rx_count = 0;
+
+/* 命令任务处理次数 */
+volatile uint32_t debug_cmd_count = 0;
+
+/* UART错误次数 */
+volatile uint32_t debug_uart_error_count = 0;
+
 /* USER CODE END Variables */
 /* Definitions for defaultTask */
 osThreadId_t defaultTaskHandle;
@@ -155,6 +173,7 @@ void StartDefaultTask(void *argument)
     {
         if (uart_cmd_ready)
         {
+           debug_cmd_count++;
             uint8_t cmd = uart_last_cmd;
 
             uart_cmd_ready = 0;
@@ -272,6 +291,10 @@ void HAL_UART_RxCpltCallback(
         /* 保存刚才收到的字符 */
         uart_last_cmd = uart_rx_byte;
 
+        /* 记录调试信息 */
+        debug_last_rx_cmd = uart_rx_byte;
+        debug_rx_count++;
+
         /* 告诉CommandTask有新命令 */
         uart_cmd_ready = 1;
 
@@ -280,6 +303,20 @@ void HAL_UART_RxCpltCallback(
          * 接完一个字节以后，
          * 马上继续等待下一个字节
          */
+        HAL_UART_Receive_IT(
+            &huart1,
+            &uart_rx_byte,
+            1
+        );
+    }
+}
+
+void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart)
+{
+    if (huart->Instance == USART1)
+    {
+        HAL_UART_AbortReceive_IT(huart);
+
         HAL_UART_Receive_IT(
             &huart1,
             &uart_rx_byte,
