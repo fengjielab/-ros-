@@ -26,6 +26,33 @@
 #define M2_ENCODER_SIGN    1
 #define M3_ENCODER_SIGN   -1
 #define M4_ENCODER_SIGN    1
+
+/* ==============================
+ * 电机控制调试变量
+ * ============================== */
+
+/* Motor_ControlStep() 执行次数 */
+volatile uint32_t debug_motor_step_count = 0;
+
+/* 当前四个电机目标值 */
+volatile float debug_motor_target[4] =
+{
+    0, 0, 0, 0
+};
+
+/* 当前四个编码器计数 */
+volatile int16_t debug_motor_count[4] =
+{
+    0, 0, 0, 0
+};
+
+/* 当前四个 PWM 值 */
+volatile uint16_t debug_motor_pwm[4] =
+{
+    0, 0, 0, 0
+};
+
+
 /*
  * 这里填写你现在已经调通的目标值
  *
@@ -396,6 +423,7 @@ void Motor_Init(void)
 
 void Motor_ControlStep(void)
 {
+      debug_motor_step_count++;
     int16_t c1;
     int16_t c2;
     int16_t c3;
@@ -438,6 +466,16 @@ void Motor_ControlStep(void)
     motor_count[2] = c3;
     motor_count[3] = c4;
 
+    /* 保存调试观察数据 */
+debug_motor_count[0] = motor_count[0];
+debug_motor_count[1] = motor_count[1];
+debug_motor_count[2] = motor_count[2];
+debug_motor_count[3] = motor_count[3];
+
+debug_motor_target[0] = motor_target[0];
+debug_motor_target[1] = motor_target[1];
+debug_motor_target[2] = motor_target[2];
+debug_motor_target[3] = motor_target[3];
 
     /* ==========================
      * 为下一个100ms重新计数
@@ -473,6 +511,7 @@ void Motor_ControlStep(void)
             Motor_SetPWM(i + 1, 0);
 
             motor_pwm[i] = 0;
+            debug_motor_pwm[i] = motor_pwm[i];
 
             /* 停止时清除PID历史 */
             motor_pid[i].integral = 0.0f;
@@ -522,6 +561,7 @@ void Motor_ControlStep(void)
         Motor_SetPWM(
             i + 1,
             motor_pwm[i]);
+            debug_motor_pwm[i] = motor_pwm[i];
     }
 }
 
