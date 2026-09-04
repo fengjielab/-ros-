@@ -10,7 +10,7 @@ from pynput import keyboard
 # ==========================
 
 ser = serial.Serial(
-    'COM17',
+    '/dev/ttyUSB0',
     115200,
     timeout=0.1
 )
